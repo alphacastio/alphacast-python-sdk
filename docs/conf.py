@@ -43,7 +43,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Alphacast API'
+project = u'Alphacast Python SDK'
 copyright = u'2021, Alphacast'
 
 # The version info for the project you're documenting, acts as replacement for
