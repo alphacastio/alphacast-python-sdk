@@ -1,12 +1,12 @@
 ============
-API Reference
+Alphacast Python SDK
 ============
 
 Alphacast API is organized around REST. Our API has predictable resource-oriented URLs, accepts form-encoded request bodies, returns JSON-encoded responses or CSV files, and uses standard HTTP response codes, authentication, and verbs.
 
 All API requests must be authenticated. Please refer to :ref:`authentication`.
 
-Authentication
+Installation
 -------
 
 Alphacast API uses API keys to authenticate requests. You can contact hello@alphacast.io to get one. 

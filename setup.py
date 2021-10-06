@@ -14,12 +14,12 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
 
 # This call to setup() does all the work
 setup(
-    name="alphacast-library",
-    version="0.1.4",
-    description="Alphacast Python library",
-    long_description="This is the first version of Alphacast Python Library",
+    name="alphacast",
+    version="0.1.0",
+    description="Alphacast Python SDK",
+    long_description="This Alphacast Python Library",
     long_description_content_type="text/markdown",
-    url="https://alphacast-library.readthedocs.io/",
+    url="https://alphacast-python-sdk.readthedocs.io/",
     author="Alphacast.io",
     author_email="hello@alphacast.io",
     license="MIT",
@@ -34,7 +34,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: OS Independent"
     ],
-    packages=["alphacast_library"],
+    packages=["alphacast"],
     include_package_data=True,
     install_requires=["requests", "pandas"]
 )
