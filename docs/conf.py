@@ -176,7 +176,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'AlphacastApidoc'
+htmlhelp_basename = 'AlphacastPythondoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -196,7 +196,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'AlphacastApi.tex', u'Alphacast API Documentation',
+  ('index', 'AlphacastPython.tex', u'Alphacast Python Documentation',
    u'Alphacast', 'manual'),
 ]
 
@@ -226,7 +226,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'alphacastapi', u'Alphacast API Documentation',
+    ('index', 'alphacastpython', u'Alphacast Python Documentation',
      [u'Read the Docs'], 1)
 ]
 
@@ -240,8 +240,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'alphacastapi', u'Alphacast API Documentation',
-   u'Alphacast API', 'AlphacastAPI', 'A unique data platform for Latin American macro research and financial analysis.',
+  ('index', 'alphacastpython', u'Alphacast Python Documentation',
+   u'Alphacast Python', 'AlphacastPython', 'A unique data platform for economic research and financial analysis.',
    'Miscellaneous'),
 ]
 
