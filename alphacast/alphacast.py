@@ -45,7 +45,7 @@ class Datasets():
             #print(element)
         return dataset
 
-    def create_dataset(self, dataset_name, repo_id, description=""):
+    def create(self, dataset_name, repo_id, description=""):
         url = "http://api.alphacast.io/datasets"
         form={
             "name": dataset_name, 
