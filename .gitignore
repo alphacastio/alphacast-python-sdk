@@ -1,0 +1,8 @@
+.env
+docs/build
+build
+dist
+.ipynb_checkpoints
+alphacast_library.egg-info/
+*.ipynb
+*/__pycache__
