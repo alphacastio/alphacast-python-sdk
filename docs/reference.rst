@@ -11,11 +11,13 @@ Begin by installing Alphacast SDK in your console
 
 
 .. code-block:: python
+
    pip install alphacast
 
 Then import the module in your screen and initialize the session with your API key. To find you API you need to have an Alphacast account (https://www.alphacast.io/api/auth/login). Once created, find your key in your settings (click on your user on the left menu) 
 
 .. code-block:: python
+
    from alphacast import Alphacast
    alphacast = Alphacast(YOUR_API_KEY)
 
@@ -26,12 +28,14 @@ Repositories
 All the interaction with your repositories are handled with the "repository" class. To read the metadata of all your repositories and those you have write permissions use repository.read_all()
 
 .. code-block:: python
+
    alphacast.repository.read_all()
 
 
 To read the metadata of a single repository by id use read_by_id or read_by_name. You need to have owner, admin or write permissions to access the repo.
 
 .. code-block:: python
+
    alphacast.repository.read_by_id(repo_id)
    alphacast.repository.read_by_name(repo_name)
 
@@ -39,6 +43,7 @@ To read the metadata of a single repository by id use read_by_id or read_by_name
 To create a repository you need to define its name, slug (optional), privacy (optional) and description (also optional). The parameter returnIdIfExists (True/False) is usen to describe the action when de repository already exists. If true, then it returns de Id.
 
 .. code-block:: python
+
    alphacast.repository.create("my first Test Repo", repo_description="This is my first Repo", slug="test-repo", privacy="Public", returnIdIfExists=True)
 
 
@@ -50,6 +55,7 @@ Finding and downloading data is at the core of Alphacast and is done with the "d
 To access the metadata of all your datasets (that is, those where you have owner, admin or write permission) use read_all() or read_by_name().
 
 .. code-block:: python
+
    alphacast.datasets.read_all()
    alphacast.datasets.read_by_name("dataset_name")
 
@@ -64,6 +70,7 @@ metadata retrieves the values of id, name, createdAt, updatedAt, repositoryId an
 datestats retrieves the infered Frequency and the first and last Date available
 
 .. code-block:: python
+
    alphacast.datasets.dataset(5565).metadata()
    alphacast.datasets.dataset(5208).datestats()
 
@@ -73,6 +80,7 @@ Downloading data
 The method download_data() of the Class dataset() is used to retrieve the data from the datasets. You need to have read permission (or above) to access the data
 
 .. code-block:: python
+
    # for json/xlsx/csv data use format = "json"  / "xlsx" / "csv"
    json_data = alphacast.datasets.dataset(6755).download_data(format = "json")
    excel_file = alphacast.datasets.dataset(6755).download_data("xlsx")
@@ -99,6 +107,7 @@ Entity can be defined as one or many columns as long as the pairs of Date / Enti
 So first let's create a dataset
 
 .. code-block:: python
+
    alphacast.datasets.create(dataset_name, repo_id, description)
 
 The process, if succesfull, will provide you with an id. you can check if your dataset has been created visiting alphacast.io/datasets/{dataset_id}
@@ -109,6 +118,7 @@ Uploading data
 Now let's insert some data into that dataset. We will use the pandas dataframe loaded before. Uploading using Pandas Dataframes is an easy way to do it, but plain csv can be uploaded.
 
 .. code-block:: python
+
    # keep some variables from the dataset
    df = df[['Date', 'country', 'CPI - All Urban Wage Earners and Clerical Workers - current_prices_yoy']]
    
@@ -117,6 +127,7 @@ Now let's insert some data into that dataset. We will use the pandas dataframe l
 
 Response  
 .. code-block:: JSON
+
    {"id": {dataset_id}, "columnDefinitions": [{"sourceName": "Date", "dataType": "Date", "dateFormat": "%Y-%m-%d", "isEntity": "True"}, {"sourceName": "country", "isEntity": "True"}], "updateAt": "2021-10-06T16:51:35.418493"}'
 
 
@@ -125,6 +136,7 @@ Next step. Upload the data. Four parameters are needed. "df" is The data and upl
 deleteMissingFromDB and onConflictUpdateDB are two parameters to decide the behaviour of what to do with if there is data already on the dataset. If deleteMissingFromDB is false everything that is not sent in the current upload will be deleted. If onConflictUpdateDB the conflicting values of matching Date / Entities will be updated.
 
 .. code-block:: python
+
    alphacast.datasets.dataset(7938).upload_data_from_df(df, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=False)
     
    #upload_data_from_csv() is also available
@@ -140,21 +152,25 @@ Your request creates a upload process in Alphacast, that may take some time. You
 Response
   
 .. code-block:: JSON
+
    {"id": 45141, "status": "Requested", "createdAt": "2021-10-06T16:58:18.999786", "datasetId": 7938}'
 
 To check the status of all your processes for that dataset use
 
 .. code-block:: python
+
    alphacast.datasets.dataset(7938).processes()
 
 Response
  
 .. code-block:: JSON
+
    {"id": 45141, "datasetId": 7938, "status": "Processed", "statusDescription": "1292 values added to database./n", "deleteMissingFromDB": 0, "onConflictUpdateDB": 0, "createdAt": "2021-10-06T16:58:18", "processedAt": "2021-10-05T15:40:52"}
 
 or alternatively
 
 .. code-block:: python
+   
    alphacast.datasets.dataset(7938).process(45141)    
 
 
