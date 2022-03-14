@@ -45,13 +45,21 @@ class Datasets():
             #print(element)
         return dataset
 
-    def create(self, dataset_name, repo_id, description=""):
+    def create(self, dataset_name, repo_id, description="", returnIdIfExists= False):
         url = "http://api.alphacast.io/datasets"
         form={
             "name": dataset_name, 
             "repositoryId": repo_id,
             "description": description
         }
+
+        exists = self.read_by_name(dataset_name)
+        if exists:
+            if returnIdIfExists:
+                return exists
+            else:
+                raise ValueError("Dataset already exists: {}".format(exists["id"]))
+
         dataset = requests.post(url, data=form, auth=HTTPBasicAuth(self.api_key, ""))
         return json.loads(dataset.content)
 
