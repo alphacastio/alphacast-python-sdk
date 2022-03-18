@@ -1,3 +1,4 @@
+from urllib.parse import urlencode
 import requests 
 from requests.auth import HTTPBasicAuth 
 import json
@@ -77,14 +78,34 @@ class Datasets():
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
             return json.loads(r.content)
 
-        def download_data(self, format="csv"):
+        def download_data(self, format="csv", startDate=None, endDate=None):
+            filters = []
+            dateColumnName = "Date"
+
+            if (startDate or endDate):
+                columnsUrl = 'http://api.alphacast.io/datasets/{}/columns'.format(self.dataset_id)
+                r = requests.get(columnsUrl, auth=HTTPBasicAuth(self.api_key, ""))
+                columns =json.loads(r.content)["columnDefinitions"]
+                dateColumnName = [c["sourceName"] for c in columns if "dataType" in c and c["dataType"]=="Date"].pop()
+
+            if (startDate):
+                filters.append("'{}' ge {}".format(dateColumnName, startDate.isoformat()))
+
+            if (endDate):
+                filters.append("'{}' le {}".format(dateColumnName, endDate.isoformat()))
+
+            dateFilter = (' and ' if startDate and endDate else '').join(filters)
+
+            allFilters = "".join(dateFilter)
+            
+            queryString = urlencode({"$filter": allFilters})
+
             #formats ["csv", "tsv", "xlsx", "json"]            
             return_format = format
             if format == "pandas": return_format = "csv"
-            url = "http://api.alphacast.io/datasets/{}/data?$format={}".format(self.dataset_id, return_format)
+            url = "http://api.alphacast.io/datasets/{}/data?&{}&$format={}".format(self.dataset_id, queryString, return_format)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
-            
-            
+
             if format == "json":
                 return [json.loads(jline) for jline in r.content.splitlines()]
             elif format == "pandas":
