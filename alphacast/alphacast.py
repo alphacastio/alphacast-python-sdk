@@ -1,3 +1,4 @@
+from urllib.parse import urlencode
 import requests 
 from requests.auth import HTTPBasicAuth 
 import json
@@ -77,14 +78,56 @@ class Datasets():
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
             return json.loads(r.content)
 
-        def download_data(self, format="csv"):
+        def get_column_definitions(self):
+            columnsUrl = 'http://api.alphacast.io/datasets/{}/columns'.format(self.dataset_id)
+            r = requests.get(columnsUrl, auth=HTTPBasicAuth(self.api_key, ""))
+            return json.loads(r.content)["columnDefinitions"]
+
+        def download_data(self, format="csv", startDate=None, endDate=None, filterVariables=[], filterEntities=[]):
+            dateColumnName = "Date"
+            allFilters = {}
+            entityQueryFilter = ""
+
+            if filterEntities:
+                entityQueryParams = []
+
+                for entity in filterEntities:
+                    entityQuery = ' or '.join([f"{entity} eq '{value}'" for value in filterEntities[entity]])
+                    entityQueryParams.append(f"({entityQuery})") 
+
+                entityQueryFilter = ' and '.join(entityQueryParams)
+            
+            dateFilters = []
+            if (startDate or endDate):
+                columns = self.get_column_definitions()
+                dateColumnName = [c["sourceName"] for c in columns if "dataType" in c and c["dataType"]=="Date"].pop()
+
+                if (startDate):
+                    dateFilters.append(f"'{dateColumnName}' ge {startDate.isoformat()}")
+
+                if (endDate):
+                    dateFilters.append(f"'{dateColumnName}' le {endDate.isoformat()}")
+
+            dateFilter = (' and ' if startDate and endDate else '').join(dateFilters)
+            dateAndEntityFilter = (' and ' if dateFilter and entityQueryFilter else '').join([dateFilter, entityQueryFilter])
+
+            if (startDate or endDate or filterEntities):
+                allFilters["$filter"] = dateAndEntityFilter
+            
+            if(len(filterVariables)):
+                allFilters["$select"] = ",".join(filterVariables)
+
+            queryString = urlencode(allFilters)
+
+            if(queryString):
+                queryString = f"&{queryString}"
+
             #formats ["csv", "tsv", "xlsx", "json"]            
             return_format = format
             if format == "pandas": return_format = "csv"
-            url = "http://api.alphacast.io/datasets/{}/data?$format={}".format(self.dataset_id, return_format)
+            url = "http://api.alphacast.io/datasets/{}/data?{}&$format={}".format(self.dataset_id, queryString, return_format)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
-            
-            
+
             if format == "json":
                 return [json.loads(jline) for jline in r.content.splitlines()]
             elif format == "pandas":
