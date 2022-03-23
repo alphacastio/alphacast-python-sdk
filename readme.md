@@ -89,21 +89,6 @@ The method download_data() of the Class dataset() is used to retrieve the data f
     df = alphacast.datasets.dataset(6755).download_data("pandas")
 ```
 
-## Filtering Dates, variables and entities
-
-DAtes, variables and entities can be filtered when downloading by following this guides
-
-```
-from datetime import datetime
-
-fEntities = {"Entiti_Name": ["Entity_value_1", "Entity_value_2"]} 
-fVariables=["Variable_1", "Variable_2", "Variable_3"]
-d1 = datetime.datetime(2019, 2, 27)
-d2 = datetime.datetime(2022, 3, 2)
-
-alphacast.datasets.dataset(dataset_id).download_data("pandas", startDate=d1, endDate=d2, filterEntities= fEntities, filterVariables=fVariables)
-
-```
 ## Creating datasets
 
 Creating datasets and uploading information is a two step process. First you need to create the datasets and "initialize" its columns. We need to know which are the "Date" and the Entity column or columns. 
