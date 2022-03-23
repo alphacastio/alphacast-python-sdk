@@ -65,6 +65,7 @@ datestats retrieves the infered Frequency and the first and last Date available
 ```
     alphacast.datasets.dataset(5565).metadata()
     alphacast.datasets.dataset(5208).datestats()
+    alphacast.datasets.dataset(5208).get_column_definitions()
 ```
 
 
@@ -88,6 +89,21 @@ The method download_data() of the Class dataset() is used to retrieve the data f
     df = alphacast.datasets.dataset(6755).download_data("pandas")
 ```
 
+## Filtering Dates, variables and entities
+
+DAtes, variables and entities can be filtered when downloading by following this guides
+
+```
+from datetime import datetime
+
+fEntities = {"Entiti_Name": ["Entity_value_1", "Entity_value_2"]} 
+fVariables=["Variable_1", "Variable_2", "Variable_3"]
+d1 = datetime.datetime(2019, 2, 27)
+d2 = datetime.datetime(2022, 3, 2)
+
+alphacast.datasets.dataset(dataset_id).download_data("pandas", startDate=d1, endDate=d2, filterEntities= fEntities, filterVariables=fVariables)
+
+```
 ## Creating datasets
 
 Creating datasets and uploading information is a two step process. First you need to create the datasets and "initialize" its columns. We need to know which are the "Date" and the Entity column or columns. 
@@ -119,10 +135,10 @@ Now let's insert some data into that dataset. We will use the pandas dataframe l
 
 Next step. Upload the data. Four parameters are needed. "df" is The data and uploadIndex defines if the DataFrame index should be uploaded also.
 
-deleteMissingFromDB and onConflictUpdateDB are two parameters to decide the behaviour of what to do with if there is data already on the dataset. If deleteMissingFromDB is false everything that is not sent in the current upload will be deleted. If onConflictUpdateDB the conflicting values of matching Date / Entities will be updated.
+deleteMissingFromDB and onConflictUpdateDB are two parameters to decide the behaviour of what to do with if there is data already on the dataset. If deleteMissingFromDB is true everything that is not sent in the current upload will be deleted. If onConflictUpdateDB is true the conflicting values of matching Date / Entities will be updated.
 
 ```
-    alphacast.datasets.dataset(7938).upload_data_from_df(df, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=False)
+    alphacast.datasets.dataset(7938).upload_data_from_df(df, deleteMissingFromDB = True, onConflictUpdateDB = True, uploadIndex=False)
     
     #upload_data_from_csv() is also available
 ```
