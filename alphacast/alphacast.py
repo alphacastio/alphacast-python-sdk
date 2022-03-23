@@ -1,5 +1,3 @@
-from asyncio import constants
-from select import select
 from urllib.parse import urlencode
 import requests 
 from requests.auth import HTTPBasicAuth 
