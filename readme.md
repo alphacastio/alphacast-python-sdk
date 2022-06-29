@@ -65,6 +65,7 @@ datestats retrieves the infered Frequency and the first and last Date available
 ```
     alphacast.datasets.dataset(5565).metadata()
     alphacast.datasets.dataset(5208).datestats()
+    alphacast.datasets.dataset(5208).get_column_definitions()
 ```
 
 
@@ -119,10 +120,10 @@ Now let's insert some data into that dataset. We will use the pandas dataframe l
 
 Next step. Upload the data. Four parameters are needed. "df" is The data and uploadIndex defines if the DataFrame index should be uploaded also.
 
-deleteMissingFromDB and onConflictUpdateDB are two parameters to decide the behaviour of what to do with if there is data already on the dataset. If deleteMissingFromDB is false everything that is not sent in the current upload will be deleted. If onConflictUpdateDB the conflicting values of matching Date / Entities will be updated.
+deleteMissingFromDB and onConflictUpdateDB are two parameters to decide the behaviour of what to do with if there is data already on the dataset. If deleteMissingFromDB is true everything that is not sent in the current upload will be deleted. If onConflictUpdateDB is true the conflicting values of matching Date / Entities will be updated.
 
 ```
-    alphacast.datasets.dataset(7938).upload_data_from_df(df, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=False)
+    alphacast.datasets.dataset(7938).upload_data_from_df(df, deleteMissingFromDB = True, onConflictUpdateDB = True, uploadIndex=False)
     
     #upload_data_from_csv() is also available
 ```
