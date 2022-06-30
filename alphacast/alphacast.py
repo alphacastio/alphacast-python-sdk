@@ -31,12 +31,12 @@ class Datasets():
         self.api_key = api_key
 
     def read_all(self):    
-        url = "http://api.alphacast.io/datasets"
+        url = "https://api.alphacast.io/datasets"
         r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
         return json.loads(r.content)
     
     def read_by_name(self, dataset_name, repo_id= None):
-        url = "http://api.alphacast.io/datasets"
+        url = "https://api.alphacast.io/datasets"
     
         r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
         dataset = None
@@ -47,7 +47,7 @@ class Datasets():
         return dataset
 
     def create(self, dataset_name, repo_id, description="", returnIdIfExists= False):
-        url = "http://api.alphacast.io/datasets"
+        url = "https://api.alphacast.io/datasets"
         form={
             "name": dataset_name, 
             "repositoryId": repo_id,
@@ -74,12 +74,12 @@ class Datasets():
             self.api_key = api_key
 
         def metadata(self):
-            url = "http://api.alphacast.io/datasets/{}".format(self.dataset_id)
+            url = "https://api.alphacast.io/datasets/{}".format(self.dataset_id)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
             return json.loads(r.content)
 
         def get_column_definitions(self):
-            columnsUrl = 'http://api.alphacast.io/datasets/{}/columns'.format(self.dataset_id)
+            columnsUrl = 'https://api.alphacast.io/datasets/{}/columns'.format(self.dataset_id)
             r = requests.get(columnsUrl, auth=HTTPBasicAuth(self.api_key, ""))
             return json.loads(r.content)["columnDefinitions"]
 
@@ -125,7 +125,7 @@ class Datasets():
             #formats ["csv", "tsv", "xlsx", "json"]            
             return_format = format
             if format == "pandas": return_format = "csv"
-            url = "http://api.alphacast.io/datasets/{}/data?{}&$format={}".format(self.dataset_id, queryString, return_format)
+            url = "https://api.alphacast.io/datasets/{}/data?{}&$format={}".format(self.dataset_id, queryString, return_format)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
 
             if format == "json":
@@ -136,34 +136,34 @@ class Datasets():
                 return r.content
         
         def upload_data_from_df(self, df, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True):
-            url = "http://api.alphacast.io/datasets/{}/data?deleteMissingFromDB={}&onConflictUpdateDB={}".format(self.dataset_id, deleteMissingFromDB, onConflictUpdateDB)
+            url = "https://api.alphacast.io/datasets/{}/data?deleteMissingFromDB={}&onConflictUpdateDB={}".format(self.dataset_id, deleteMissingFromDB, onConflictUpdateDB)
             files = {'data': df.to_csv(index=uploadIndex)}
             r = requests.put(url, files=files, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
         def upload_data_from_csv(self, csv, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True):
-            url = "http://api.alphacast.io/datasets/{}/data?deleteMissingFromDB={}&onConflictUpdateDB={}".format(self.dataset_id, deleteMissingFromDB, onConflictUpdateDB)
+            url = "https://api.alphacast.io/datasets/{}/data?deleteMissingFromDB={}&onConflictUpdateDB={}".format(self.dataset_id, deleteMissingFromDB, onConflictUpdateDB)
             files = {'data': csv}
             r = requests.put(url, files=files, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
         def processes(self):
-            url = "http://api.alphacast.io/datasets/{}/processes".format(self.dataset_id)
+            url = "https://api.alphacast.io/datasets/{}/processes".format(self.dataset_id)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content   
 
         def process(self, process_id):
-            url = "http://api.alphacast.io/datasets/{}/processes/{}".format(self.dataset_id, process_id)
+            url = "https://api.alphacast.io/datasets/{}/processes/{}".format(self.dataset_id, process_id)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
         
         def datestats(self):
-            url = "http://api.alphacast.io/datasets/{}/date-stats".format(self.dataset_id)
+            url = "https://api.alphacast.io/datasets/{}/date-stats".format(self.dataset_id)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
         def delete(self):
-            url = "http://api.alphacast.io/datasets/{}".format(self.dataset_id)
+            url = "https://api.alphacast.io/datasets/{}".format(self.dataset_id)
             r = requests.delete(url, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
@@ -174,8 +174,15 @@ class Datasets():
                 "dateFormat": dateFormat,
                 "content-type": "json"
                 }
-            url = "http://api.alphacast.io/datasets/{}/columns/initializer".format(self.dataset_id)
+            url = "https://api.alphacast.io/datasets/{}/columns/initializer".format(self.dataset_id)
             r = requests.put(url, json=form_data, auth=HTTPBasicAuth(self.api_key, ""))
+            rjson = r.json()
+
+            if r.status_code == 403:
+                if(rjson["message"]):
+                    raise Exception(rjson["message"])     
+                raise Exception('An error occurred')
+
             return r.content            
 
 
@@ -194,17 +201,17 @@ class Repository():
         self.api_key = api_key
 
     def read_all(self):
-        url = "http://api.alphacast.io/repositories"
+        url = "https://api.alphacast.io/repositories"
         r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
         return json.loads(r.content)
 
     def read_by_id(self, repository_id):
-            url = "http://api.alphacast.io/repositories/{}".format(repository_id)
+            url = "https://api.alphacast.io/repositories/{}".format(repository_id)
             r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
             return json.loads(r.content)
 
     def read_by_name(self, repo_name):
-        url = "http://api.alphacast.io/repositories"
+        url = "https://api.alphacast.io/repositories"
         r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
         repos = json.loads(r.content)
         for element in repos:
@@ -213,7 +220,7 @@ class Repository():
         return False
 
     def delete(self, repository_id):
-        url = "http://api.alphacast.io/repositories/{}".format(repository_id)
+        url = "https://api.alphacast.io/repositories/{}".format(repository_id)
         r = requests.delete(url, auth=HTTPBasicAuth(self.api_key, ""))
         return r.content
 
@@ -230,7 +237,7 @@ class Repository():
             else:
                 raise ValueError("Repository already exists: {}".format(exists["id"]))
 
-        url = "http://api.alphacast.io/repositories"
+        url = "https://api.alphacast.io/repositories"
         
         form={
             "name": repo_name,
