@@ -176,6 +176,13 @@ class Datasets():
                 }
             url = "https://api.alphacast.io/datasets/{}/columns/initializer".format(self.dataset_id)
             r = requests.put(url, json=form_data, auth=HTTPBasicAuth(self.api_key, ""))
+            rjson = r.json()
+
+            if r.status_code == 403:
+                if(rjson["message"]):
+                    raise Exception(rjson["message"])     
+                raise Exception('An error occurred')
+
             return r.content            
 
 
