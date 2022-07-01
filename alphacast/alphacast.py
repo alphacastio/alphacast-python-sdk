@@ -7,8 +7,26 @@ import io
 #from dotenv import dotenv_values
 #env_settings = dotenv_values(".env")
 
+BASE_URL = "https://api.alphacast.io"
 
-class Datasets():       
+class Base():
+    def __init__(self, api_key):
+        self.api_key = api_key
+
+    def _get(self, path):
+        url = f"{BASE_URL}{path}"
+        r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+
+        if not r.ok:
+            rjson = r.json()
+            if(rjson["message"]):
+                raise Exception(f"{r.status_code}: {rjson['message']}")     
+            raise Exception(f'API failed with status code {r.status_code}')
+
+        return r
+
+
+class Datasets(Base):       
     # Dataset Class
     # 
     # Methods:
@@ -25,20 +43,13 @@ class Datasets():
     # dataset().datestats
     # dataset().initialize_columns(dateColumnName, entitiesColumnNames, dateFormat)
     
-    
-
-    def __init__(self, api_key):
-        self.api_key = api_key
-
     def read_all(self):    
-        url = "https://api.alphacast.io/datasets"
-        r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+        r = self._get("/datasets")
         return json.loads(r.content)
     
     def read_by_name(self, dataset_name, repo_id= None):
-        url = "https://api.alphacast.io/datasets"
-    
-        r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+
+        r = self._get("/datasets")
         dataset = None
         for element in json.loads(r.content):
             if (element["name"] == dataset_name) & ((element["repositoryId"] == repo_id) | (repo_id== None)):
@@ -47,7 +58,7 @@ class Datasets():
         return dataset
 
     def create(self, dataset_name, repo_id, description="", returnIdIfExists= False):
-        url = "https://api.alphacast.io/datasets"
+        url = f"{BASE_URL}/datasets"
         form={
             "name": dataset_name, 
             "repositoryId": repo_id,
@@ -67,20 +78,18 @@ class Datasets():
     def dataset(self, dataset_id):
         return self.Dataset(dataset_id, self.api_key)
 
-    class Dataset():
+    class Dataset(Base):
 
         def __init__(self, dataset_id, api_key):            
+            super().__init__(api_key)
             self.dataset_id = dataset_id
-            self.api_key = api_key
 
         def metadata(self):
-            url = "https://api.alphacast.io/datasets/{}".format(self.dataset_id)
-            r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+            r = self._get(f"/datasets/{self.dataset_id}")
             return json.loads(r.content)
 
         def get_column_definitions(self):
-            columnsUrl = 'https://api.alphacast.io/datasets/{}/columns'.format(self.dataset_id)
-            r = requests.get(columnsUrl, auth=HTTPBasicAuth(self.api_key, ""))
+            r = self._get(f"/datasets/{self.dataset_id}/columns")
             return json.loads(r.content)["columnDefinitions"]
 
         def download_data(self, format="csv", startDate=None, endDate=None, filterVariables=[], filterEntities=[]):
@@ -125,8 +134,8 @@ class Datasets():
             #formats ["csv", "tsv", "xlsx", "json"]            
             return_format = format
             if format == "pandas": return_format = "csv"
-            url = "https://api.alphacast.io/datasets/{}/data?{}&$format={}".format(self.dataset_id, queryString, return_format)
-            r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+
+            r = self._get(f"/datasets/{self.dataset_id}/data?{queryString}&$format={return_format}")
 
             if format == "json":
                 return [json.loads(jline) for jline in r.content.splitlines()]
@@ -136,34 +145,31 @@ class Datasets():
                 return r.content
         
         def upload_data_from_df(self, df, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True):
-            url = "https://api.alphacast.io/datasets/{}/data?deleteMissingFromDB={}&onConflictUpdateDB={}".format(self.dataset_id, deleteMissingFromDB, onConflictUpdateDB)
+            url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
             files = {'data': df.to_csv(index=uploadIndex)}
             r = requests.put(url, files=files, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
         def upload_data_from_csv(self, csv, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True):
-            url = "https://api.alphacast.io/datasets/{}/data?deleteMissingFromDB={}&onConflictUpdateDB={}".format(self.dataset_id, deleteMissingFromDB, onConflictUpdateDB)
+            url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
             files = {'data': csv}
             r = requests.put(url, files=files, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
         def processes(self):
-            url = "https://api.alphacast.io/datasets/{}/processes".format(self.dataset_id)
-            r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+            r = self._get(f"/datasets/{self.dataset_id}/processes")
             return r.content   
 
         def process(self, process_id):
-            url = "https://api.alphacast.io/datasets/{}/processes/{}".format(self.dataset_id, process_id)
-            r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+            r = self._get(f"/datasets/{self.dataset_id}/processes/{process_id}")
             return r.content
         
         def datestats(self):
-            url = "https://api.alphacast.io/datasets/{}/date-stats".format(self.dataset_id)
-            r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+            r = self._get(f"/datasets/{self.dataset_id}/date-stats")
             return r.content
 
         def delete(self):
-            url = "https://api.alphacast.io/datasets/{}".format(self.dataset_id)
+            url = f"{BASE_URL}/datasets/{self.dataset_id}"
             r = requests.delete(url, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
@@ -174,7 +180,7 @@ class Datasets():
                 "dateFormat": dateFormat,
                 "content-type": "json"
                 }
-            url = "https://api.alphacast.io/datasets/{}/columns/initializer".format(self.dataset_id)
+            url = f"{BASE_URL}/datasets/{self.dataset_id}/columns/initializer"
             r = requests.put(url, json=form_data, auth=HTTPBasicAuth(self.api_key, ""))
             rjson = r.json()
 
@@ -186,9 +192,7 @@ class Datasets():
             return r.content            
 
 
-
-
-class Repository():   
+class Repository(Base):   
     # Repository Class
     # 
     # Methods:
@@ -197,30 +201,23 @@ class Repository():
     # read_by_name(dataset_name, repo_id=None)
     # create(repo_name, repo_description=None, privacy="Private", slug=None, returnIdIfExists=False)
 
-    def __init__(self, api_key):
-        self.api_key = api_key
-
     def read_all(self):
-        url = "https://api.alphacast.io/repositories"
-        r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
+        r = self._get("/repositories")
         return json.loads(r.content)
 
     def read_by_id(self, repository_id):
-            url = "https://api.alphacast.io/repositories/{}".format(repository_id)
-            r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
-            return json.loads(r.content)
+        r = self._get(f"/repositories/{repository_id}")
+        return json.loads(r.content)
 
     def read_by_name(self, repo_name):
-        url = "https://api.alphacast.io/repositories"
-        r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
-        repos = json.loads(r.content)
+        repos = self.read_all()
         for element in repos:
             if (element["name"] == repo_name):
                 return element
         return False
 
     def delete(self, repository_id):
-        url = "https://api.alphacast.io/repositories/{}".format(repository_id)
+        url = f"{BASE_URL}/repositories/{repository_id}"
         r = requests.delete(url, auth=HTTPBasicAuth(self.api_key, ""))
         return r.content
 
@@ -237,7 +234,7 @@ class Repository():
             else:
                 raise ValueError("Repository already exists: {}".format(exists["id"]))
 
-        url = "https://api.alphacast.io/repositories"
+        url = f"{BASE_URL}/repositories"
         
         form={
             "name": repo_name,
