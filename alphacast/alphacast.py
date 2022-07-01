@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 import json
 import pandas as pd
 import io
+from typing import List
 #from dotenv import dotenv_values
 #env_settings = dotenv_values(".env")
 
@@ -65,12 +66,12 @@ class Datasets(Base):
             "description": description
         }
 
-        exists = self.read_by_name(dataset_name)
-        if exists:
+        previous_dataset = self.read_by_name(dataset_name)
+        if previous_dataset and previous_dataset['repositoryId'] == repo_id:
             if returnIdIfExists:
-                return exists
+                return previous_dataset
             else:
-                raise ValueError("Dataset already exists: {}".format(exists["id"]))
+                raise ValueError("Dataset already exists: {}".format(previous_dataset["id"]))
 
         dataset = requests.post(url, data=form, auth=HTTPBasicAuth(self.api_key, ""))
         return json.loads(dataset.content)
@@ -144,16 +145,44 @@ class Datasets(Base):
             else:    
                 return r.content
         
-        def upload_data_from_df(self, df, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True):
-            url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
-            files = {'data': df.to_csv(index=uploadIndex)}
-            r = requests.put(url, files=files, auth=HTTPBasicAuth(self.api_key, ""))
-            return r.content
+        def upload_data_from_df(self, df, 
+                deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True,
+                dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None):
+            return self.upload_data_from_csv(df.to_csv(index=uploadIndex), deleteMissingFromDB, onConflictUpdateDB, dateColumnName, dateFormat, entitiesColumnNames, stringColumnNames )
 
-        def upload_data_from_csv(self, csv, deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True):
+        def upload_data_from_csv(self, csv, 
+                deleteMissingFromDB = False, onConflictUpdateDB = False, 
+                dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None):
+
+            initializer = None
+            if dateColumnName and dateFormat and entitiesColumnNames:
+                manifest = [
+                        {
+                            "sourceName": "Date",
+                            "isEntity": True,
+                            "dataType": "Date",
+                            "dateFormat": dateFormat
+                        }
+                    ] + [
+                        {
+                            "sourceName": c,
+                            "isEntity": True,
+                            "dataType": "String"
+                        } for c in entitiesColumnNames
+                    ] + [
+                        {
+                            "sourceName": c,
+                            "isEntity": False,
+                            "dataType": "String"
+                        } for c in stringColumnNames or []
+                    ]
+                
+                initializer = {"manifest": json.dumps(manifest)
+            }
+
             url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
             files = {'data': csv}
-            r = requests.put(url, files=files, auth=HTTPBasicAuth(self.api_key, ""))
+            r = requests.put(url, files=files, data=initializer, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
         def processes(self):
