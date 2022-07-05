@@ -1,8 +1,5 @@
 name: Publish Python distribution to PyPI
-on:
-  release:
-    types:
-      - created
+on: push
 
 jobs:
   build-n-publish:
