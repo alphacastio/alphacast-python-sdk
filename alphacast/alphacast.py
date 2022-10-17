@@ -220,6 +220,18 @@ class Datasets(Base):
 
             return r.content            
 
+        def run_connector(self, executionParam):
+            url = f"{BASE_URL}/datasets/{self.dataset_id}/connector/runs"
+            form={
+                "executionParam": executionParam,
+            }
+            post = requests.post(url, data=form, auth=HTTPBasicAuth(self.api_key, ""))
+            return json.loads(post.content)
+
+        def get_connector_run(self, runId):
+            r = self._get(f"/datasets/{self.dataset_id}/connector/runs/{runId}")
+            return r.content   
+
 
 class Repository(Base):   
     # Repository Class
