@@ -148,6 +148,8 @@ class Datasets(Base):
         def upload_data_from_df(self, df, 
                 deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True,
                 dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None):
+            if df.empty:
+                raise "Dataframe is empty."
             return self.upload_data_from_csv(df.to_csv(index=uploadIndex), deleteMissingFromDB, onConflictUpdateDB, dateColumnName, dateFormat, entitiesColumnNames, stringColumnNames )
 
         def upload_data_from_csv(self, csv, 
