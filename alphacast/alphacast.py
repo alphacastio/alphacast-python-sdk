@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 import json
 import pandas as pd
 import io
+import zlib
 from typing import List
 #from dotenv import dotenv_values
 #env_settings = dotenv_values(".env")
@@ -19,9 +20,12 @@ class Base():
         r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
 
         if not r.ok:
-            rjson = r.json()
-            if(rjson["message"]):
-                raise Exception(f"{r.status_code}: {rjson['message']}")     
+            try:
+                rjson = r.json()
+                if rjson.get("message"):
+                    raise Exception(f"{r.status_code}: {rjson['message']}")
+            except:
+                pass
             raise Exception(f'API failed with status code {r.status_code}')
 
         return r
@@ -157,33 +161,38 @@ class Datasets(Base):
                 dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None):
 
             initializer = None
-            if dateColumnName and dateFormat and entitiesColumnNames:
-                manifest = [
-                        {
-                            "sourceName": "Date",
-                            "isEntity": True,
-                            "dataType": "Date",
-                            "dateFormat": dateFormat
-                        }
-                    ] + [
+            if (dateColumnName and dateFormat) or entitiesColumnNames or stringColumnNames:
+                manifest = []
+                if dateColumnName and dateFormat:
+                    manifest.append({
+                        "sourceName": dateColumnName,
+                        "isEntity": True,
+                        "dataType": "Date",
+                        "dateFormat": dateFormat
+                    })
+                if entitiesColumnNames:
+                    manifest += [
                         {
                             "sourceName": c,
                             "isEntity": True,
                             "dataType": "String"
                         } for c in entitiesColumnNames
-                    ] + [
+                    ]
+                if stringColumnNames:
+                    manifest += [
                         {
                             "sourceName": c,
                             "isEntity": False,
                             "dataType": "String"
-                        } for c in stringColumnNames or []
+                        } for c in stringColumnNames
                     ]
                 
                 initializer = {"manifest": json.dumps(manifest)
             }
 
             url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
-            files = {'data': csv}
+            
+            files = {'data': ('data.zip', zlib.compress(csv.encode()))}
             r = requests.put(url, files=files, data=initializer, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
