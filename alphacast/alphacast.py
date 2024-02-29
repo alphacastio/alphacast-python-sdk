@@ -4,7 +4,7 @@ from requests.auth import HTTPBasicAuth
 import json
 import pandas as pd
 import io
-import zlib
+import zipfile
 from typing import List
 #from dotenv import dotenv_values
 #env_settings = dotenv_values(".env")
@@ -192,7 +192,11 @@ class Datasets(Base):
 
             url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
             
-            files = {'data': ('data.zip', zlib.compress(csv.encode()))}
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
+                zip_file.writestr("data.csv", csv)
+
+            files = {'data': ('data.zip', zip_buffer.getvalue())}
             r = requests.put(url, files=files, data=initializer, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
