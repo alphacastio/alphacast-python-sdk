@@ -4,6 +4,7 @@ from requests.auth import HTTPBasicAuth
 import json
 import pandas as pd
 import io
+import zlib
 from typing import List
 #from dotenv import dotenv_values
 #env_settings = dotenv_values(".env")
@@ -190,7 +191,8 @@ class Datasets(Base):
             }
 
             url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
-            files = {'data': csv}
+            
+            files = {'data': ('data.zip', zlib.compress(csv.encode()))}
             r = requests.put(url, files=files, data=initializer, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 
