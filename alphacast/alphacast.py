@@ -151,14 +151,14 @@ class Datasets(Base):
         
         def upload_data_from_df(self, df, 
                 deleteMissingFromDB = False, onConflictUpdateDB = False, uploadIndex=True,
-                dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None):
+                dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None, acceptNewColumns: bool = None):
             if df.empty:
                 raise "Dataframe is empty."
-            return self.upload_data_from_csv(df.to_csv(index=uploadIndex), deleteMissingFromDB, onConflictUpdateDB, dateColumnName, dateFormat, entitiesColumnNames, stringColumnNames )
+            return self.upload_data_from_csv(df.to_csv(index=uploadIndex), deleteMissingFromDB, onConflictUpdateDB, dateColumnName, dateFormat, entitiesColumnNames, stringColumnNames, acceptNewColumns )
 
         def upload_data_from_csv(self, csv, 
                 deleteMissingFromDB = False, onConflictUpdateDB = False, 
-                dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None):
+                dateColumnName: str = None, dateFormat: str = None, entitiesColumnNames: List[str] = None, stringColumnNames: List[str] = None, acceptNewColumns: bool = None):
 
             initializer = None
             if (dateColumnName and dateFormat) or entitiesColumnNames or stringColumnNames:
@@ -187,10 +187,11 @@ class Datasets(Base):
                         } for c in stringColumnNames
                     ]
                 
-                initializer = {"manifest": json.dumps(manifest)
-            }
-
+                initializer = { "manifest": json.dumps(manifest) }
+                
             url = f"{BASE_URL}/datasets/{self.dataset_id}/data?deleteMissingFromDB={deleteMissingFromDB}&onConflictUpdateDB={onConflictUpdateDB}"
+            if acceptNewColumns:
+                url += f"&acceptNewColumns={acceptNewColumns}"
             
             zip_buffer = io.BytesIO()
             with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:

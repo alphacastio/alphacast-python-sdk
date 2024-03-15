@@ -30,6 +30,17 @@ class TestDatasets(unittest.TestCase):
 
         process = dataset_proxy.upload_data_from_df(df, dateColumnName='Date', dateFormat='%Y-%m-%d', entitiesColumnNames=['Country'], stringColumnNames=['Language'])
         self.assertIsNotNone(process) 
-        
+
+        df = pd.DataFrame({
+            'Date': ['2022-01-01', '2022-01-02', '2022-01-03'],
+            'Country': ['USA', 'France', 'Spain'],
+            'Population': [230000, 42200, 242200],
+            'Language': ['English', 'French', 'Spanish'],
+            'Income': [30000, 2200, 42200],
+        })
+
+        process = dataset_proxy.upload_data_from_df(df, uploadIndex=False, dateColumnName='Date', dateFormat='%Y-%m-%d', entitiesColumnNames=['Country'], stringColumnNames=['Language'], acceptNewColumns=True)
+        self.assertIsNotNone(process) 
+
         dataset_proxy.delete()
         alphacast.repository.delete(repository["id"])
