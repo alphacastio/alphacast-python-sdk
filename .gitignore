@@ -6,3 +6,4 @@ dist
 alphacast.egg-info/
 *.ipynb
 */__pycache__
+venv

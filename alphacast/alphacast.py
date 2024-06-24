@@ -1,13 +1,11 @@
+import gzip
 from urllib.parse import urlencode
 import requests 
 from requests.auth import HTTPBasicAuth 
 import json
 import pandas as pd
 import io
-import zipfile
 from typing import List
-#from dotenv import dotenv_values
-#env_settings = dotenv_values(".env")
 
 BASE_URL = "https://api.alphacast.io"
 
@@ -193,11 +191,13 @@ class Datasets(Base):
             if acceptNewColumns:
                 url += f"&acceptNewColumns={acceptNewColumns}"
             
-            zip_buffer = io.BytesIO()
-            with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
-                zip_file.writestr("data.csv", csv)
+            with io.BytesIO() as bio:
+                with gzip.GzipFile(mode='w', fileobj=bio) as gz:
+                    gz.write(csv.encode('utf-8'))
 
-            files = {'data': ('data.zip', zip_buffer.getvalue())}
+                bio.seek(0)
+                    
+                files = {'data': ('data.csv.gz', bio.getvalue())}
             r = requests.put(url, files=files, data=initializer, auth=HTTPBasicAuth(self.api_key, ""))
             return r.content
 

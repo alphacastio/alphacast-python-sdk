@@ -1,4 +1,10 @@
 import unittest
+import os
+import sys
+
+local_module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'alphacast'))
+sys.path.insert(0, local_module_path)
+
 from alphacast import Alphacast
 import pandas as pd
 
