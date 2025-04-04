@@ -104,7 +104,7 @@ class Datasets(Base):
                 entityQueryParams = []
 
                 for entity in filterEntities:
-                    entityQuery = ' or '.join([f"{entity} eq '{value}'" for value in filterEntities[entity]])
+                    entityQuery = ' or '.join([f"'{entity}' eq '{value}'" for value in filterEntities[entity]])
                     entityQueryParams.append(f"({entityQuery})") 
 
                 entityQueryFilter = ' and '.join(entityQueryParams)
