@@ -50,3 +50,19 @@ class TestDatasets(unittest.TestCase):
 
         dataset_proxy.delete()
         alphacast.repository.delete(repository["id"])
+
+class TestSeries(unittest.TestCase):
+
+    def test_get_series_by_id(self):
+        series = alphacast.series.read_by_id(53804)
+        print(series)
+
+    def test_download_series_data(self):
+        series = alphacast.series.read_by_id(53804)
+        data = alphacast.series.serie(53804).download_data(format="json")
+        self.assertIsNotNone(data)
+        print(data)
+        
+        
+
+
