@@ -7,7 +7,7 @@ from codecs import open
 # This call to setup() does all the work
 setup(
     name="alphacast",
-    version="0.1.8.5",
+    version="0.1.8.6",
     description="Alphacast Python SDK",
     long_description="This Alphacast Python Library",
     long_description_content_type="text/markdown",
