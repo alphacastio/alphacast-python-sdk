@@ -35,35 +35,32 @@ class Series(Base):
     # Series Class
     # 
     # Methods:
-    # read_by_id(series_id)
-    # series().download_data
+    # metadata()
+    # download_data(format)
 
-    def read_by_id(self, series_id):
-        r = self._get(f"/series/{series_id}")
+    def __init__(self, api_key, series_id):
+        super().__init__(api_key)
+        self.series_id = series_id
+
+
+    def metadata(self):
+        r = self._get(f"/series/{self.series_id}")
         return json.loads(r.content)
 
-    def serie(self, serie_id):
-        return self.Serie(serie_id, self.api_key)
+    def download_data(self, format="csv"):
 
-    class Serie(Base):
-        def __init__(self, series_id, api_key):
-            super().__init__(api_key)
-            self.series_id = series_id
-        
-        def download_data(self, format="csv"):
+        #formats ["csv", "tsv", "xlsx", "json"]            
+        return_format = format
+        if format == "pandas": return_format = "csv"
 
-            #formats ["csv", "tsv", "xlsx", "json"]            
-            return_format = format
-            if format == "pandas": return_format = "csv"
+        r = self._get(f"/series/{self.series_id}/data?$format={return_format}")
 
-            r = self._get(f"/series/{self.series_id}/data?$format={return_format}")
-
-            if format == "json":
-                return [json.loads(jline) for jline in r.content.splitlines()]
-            elif format == "pandas":
-                return pd.read_csv(io.StringIO(r.content.decode("UTF-8")))
-            else:    
-                return r.content
+        if format == "json":
+            return [json.loads(jline) for jline in r.content.splitlines()]
+        elif format == "pandas":
+            return pd.read_csv(io.StringIO(r.content.decode("UTF-8")))
+        else:    
+            return r.content
     
 
 class Datasets(Base):
@@ -346,10 +343,13 @@ class Alphacast():
     # Methods:
     # repository
     # dataset
+    # series
 
     def __init__(self, api_key):
         self.api_key = api_key
         self.repository = Repository(self.api_key) 
         self.datasets = Datasets(self.api_key)    
-        self.series = Series(self.api_key)
+
+    def series(self, series_id):
+        return Series(self.api_key, series_id)
         

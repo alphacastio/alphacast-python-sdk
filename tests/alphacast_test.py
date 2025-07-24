@@ -53,13 +53,12 @@ class TestDatasets(unittest.TestCase):
 
 class TestSeries(unittest.TestCase):
 
-    def test_get_series_by_id(self):
-        series = alphacast.series.read_by_id(53804)
+    def test_get_metadata_from_series_by_id(self):
+        series = alphacast.series(53804).metadata()
         print(series)
 
     def test_download_series_data(self):
-        series = alphacast.series.read_by_id(53804)
-        data = alphacast.series.serie(53804).download_data(format="json")
+        data = alphacast.series(53804).download_data(format="json")
         self.assertIsNotNone(data)
         print(data)
         
