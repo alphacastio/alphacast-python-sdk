@@ -150,10 +150,14 @@ class Datasets(Base):
                 dateColumnName = [c["sourceName"] for c in columns if "dataType" in c and c["dataType"]=="Date"].pop()
 
                 if (startDate):
-                    dateFilters.append(f"'{dateColumnName}' ge {startDate.isoformat()}")
+                    # Handle both string dates and date objects
+                    start_date_str = startDate if isinstance(startDate, str) else startDate.isoformat()
+                    dateFilters.append(f"'{dateColumnName}' ge {start_date_str}")
 
                 if (endDate):
-                    dateFilters.append(f"'{dateColumnName}' le {endDate.isoformat()}")
+                    # Handle both string dates and date objects
+                    end_date_str = endDate if isinstance(endDate, str) else endDate.isoformat()
+                    dateFilters.append(f"'{dateColumnName}' le {end_date_str}")
 
             dateFilter = (' and ' if startDate and endDate else '').join(dateFilters)
             dateAndEntityFilter = (' and ' if dateFilter and entityQueryFilter else '').join([dateFilter, entityQueryFilter])

@@ -51,6 +51,14 @@ class TestDatasets(unittest.TestCase):
         dataset_proxy.delete()
         alphacast.repository.delete(repository["id"])
 
+
+    def test_download_dataset(self):
+        dataset = alphacast.datasets.dataset(45439)
+
+        df = dataset.download_data(format = "pandas", startDate="2004-01-01", endDate="2025-06-01", filterVariables = [], filterEntities = {})
+
+        print(df)
+
 class TestSeries(unittest.TestCase):
 
     def test_get_metadata_from_series_by_id(self):
