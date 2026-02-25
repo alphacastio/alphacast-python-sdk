@@ -8,6 +8,7 @@ import io
 from typing import List
 
 BASE_URL = "https://api.alphacast.io"
+WORKSPACE_URL = "https://www.alphacast.io"
 
 class Base():
     def __init__(self, api_key):
@@ -284,6 +285,72 @@ class Datasets(Base):
             return r.content   
 
 
+class Search(Base):
+    """Search across Alphacast content.
+
+    Results respect the authenticated user's repository permissions — only
+    datasets the user can read are returned unless ``search_all=True`` is
+    passed to include all public content.
+
+    Usage::
+
+        from alphacast import Alphacast
+
+        ac = Alphacast("your-api-key")
+
+        # Basic search
+        results = ac.search.datasets("GDP Argentina")
+
+        # Paginated search scoped to a single repository
+        results = ac.search.datasets("inflation", offset=10, length=5, repository_id=42)
+
+        # Search all public datasets, excluding deprecated ones
+        results = ac.search.datasets("CPI", search_all=True, exclude_deprecated=True)
+    """
+
+    def datasets(self, query, offset=0, length=10, repository_id=None, search_all=False, exclude_deprecated=False):
+        """Search datasets by keyword.
+
+        Args:
+            query (str): Full-text search query (supports fuzzy matching).
+            offset (int): Number of results to skip for pagination. Defaults to 0.
+            length (int): Maximum number of results to return. Defaults to 10.
+            repository_id (int, optional): Restrict results to a single repository.
+            search_all (bool): When True, search all public datasets beyond the
+                user's own repositories. Defaults to False.
+            exclude_deprecated (bool): When True, omit datasets marked as
+                deprecated. Defaults to False.
+
+        Returns:
+            dict: Search response with keys ``data`` (list of matching datasets),
+            ``totalItems``, ``totalPages``, ``currentPage``, and ``offset``.
+
+        Raises:
+            Exception: If the search request fails.
+        """
+        params = {
+            "q": query,
+            "asset": "datasets",
+            "offset": offset,
+            "length": length,
+            "apiKey": self.api_key,
+        }
+        if repository_id:
+            params["repositoryId"] = repository_id
+        if search_all:
+            params["searchAllAlphacast"] = "true"
+        if exclude_deprecated:
+            params["excludeDeprecated"] = "true"
+
+        url = f"{WORKSPACE_URL}/api/search?{urlencode(params)}"
+        r = requests.get(url)
+
+        if not r.ok:
+            raise Exception(f'Search failed with status code {r.status_code}')
+
+        return r.json()
+
+
 class Repository(Base):   
     # Repository Class
     # 
@@ -337,18 +404,20 @@ class Repository(Base):
 
         return json.loads(requests.post(url, data=form, auth=HTTPBasicAuth(self.api_key, "")).content)
 
-class Alphacast():   
+class Alphacast():
     # Alphacast Class(api_key)
-    # 
+    #
     # Methods:
     # repository
     # dataset
     # series
+    # search
 
     def __init__(self, api_key):
         self.api_key = api_key
-        self.repository = Repository(self.api_key) 
-        self.datasets = Datasets(self.api_key)    
+        self.repository = Repository(self.api_key)
+        self.datasets = Datasets(self.api_key)
+        self.search = Search(self.api_key)
 
     def series(self, series_id):
         return Series(self.api_key, series_id)

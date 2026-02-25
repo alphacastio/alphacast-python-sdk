@@ -51,6 +51,27 @@ class TestDatasets(unittest.TestCase):
         dataset_proxy.delete()
         alphacast.repository.delete(repository["id"])
 
+class TestSearch(unittest.TestCase):
+
+    def test_search_datasets_returns_results(self):
+        result = alphacast.search.datasets("GDP")
+        self.assertIn("data", result)
+        self.assertIsInstance(result["data"], list)
+        self.assertGreater(len(result["data"]), 0)
+
+    def test_search_datasets_pagination(self):
+        page1 = alphacast.search.datasets("inflation", offset=0, length=3)
+        page2 = alphacast.search.datasets("inflation", offset=3, length=3)
+        self.assertEqual(len(page1["data"]), 3)
+        ids_page1 = [h["id"] for h in page1["data"]]
+        ids_page2 = [h["id"] for h in page2["data"]]
+        self.assertEqual(len(set(ids_page1) & set(ids_page2)), 0)
+
+    def test_search_datasets_exclude_deprecated(self):
+        result = alphacast.search.datasets("GDP", exclude_deprecated=True)
+        self.assertIn("data", result)
+
+
 class TestSeries(unittest.TestCase):
 
     def test_get_metadata_from_series_by_id(self):
