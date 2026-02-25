@@ -148,6 +148,51 @@ To check the status of all your processes for that dataset use
 
 ok! We are done. Good Job!!
 
+## Searching datasets
+
+Use `search.datasets()` to find datasets by keyword across your repositories and Alphacast's public catalog. Results respect your account permissions — only datasets you can read are returned by default.
+
+```python
+results = alphacast.search.datasets("GDP Argentina")
+
+for dataset in results["data"]:
+    print(dataset["id"], dataset["name"])
+```
+
+### Pagination
+
+Use `offset` and `length` to page through results.
+
+```python
+# First page
+page1 = alphacast.search.datasets("inflation", offset=0, length=10)
+
+# Second page
+page2 = alphacast.search.datasets("inflation", offset=10, length=10)
+
+print(f"Showing {len(page1['data'])} of {page1['totalItems']} results")
+```
+
+### Search all public datasets
+
+Pass `search_all=True` to extend the search beyond your own repositories to all public datasets on Alphacast.
+
+```python
+results = alphacast.search.datasets("CPI", search_all=True)
+```
+
+### Filter by repository
+
+```python
+results = alphacast.search.datasets("employment", repository_id=42)
+```
+
+### Exclude deprecated datasets
+
+```python
+results = alphacast.search.datasets("GDP", exclude_deprecated=True)
+```
+
 Much more features are coming down the road. Stay tuned. We would love to hear your feedback at hello@alphacast.io
 
 
