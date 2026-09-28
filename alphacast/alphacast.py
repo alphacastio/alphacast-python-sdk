@@ -14,20 +14,22 @@ class Base():
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def _get(self, path):
+    def _get(self, path, params=None):
         url = f"{BASE_URL}{path}"
-        r = requests.get(url, auth=HTTPBasicAuth(self.api_key, ""))
-
-        if not r.ok:
-            try:
-                rjson = r.json()
-                if rjson.get("message"):
-                    raise Exception(f"{r.status_code}: {rjson['message']}")
-            except:
-                pass
-            raise Exception(f'API failed with status code {r.status_code}')
-
+        r = requests.get(url, params=params, auth=HTTPBasicAuth(self.api_key, ""))
+        self._raise_for_status(r)
         return r
+
+    def _raise_for_status(self, r):
+        if r.ok:
+            return
+        try:
+            message = r.json().get("message")
+        except (ValueError, AttributeError):
+            message = None
+        if message:
+            raise Exception(f"{r.status_code}: {message}")
+        raise Exception(f'API failed with status code {r.status_code}')
 
 
 
@@ -86,14 +88,12 @@ class Datasets(Base):
         return json.loads(r.content)
     
     def read_by_name(self, dataset_name, repo_id= None):
+        params = {"name": dataset_name}
+        if repo_id is not None:
+            params["repositoryId"] = repo_id
 
-        r = self._get("/datasets")
-        dataset = None
-        for element in json.loads(r.content):
-            if (element["name"] == dataset_name) & ((element["repositoryId"] == repo_id) | (repo_id== None)):
-                return element
-            #print(element)
-        return dataset
+        matches = json.loads(self._get("/datasets", params).content)
+        return matches[0] if matches else None
     
 
     def create(self, dataset_name, repo_id, description="", returnIdIfExists= False):
@@ -104,14 +104,15 @@ class Datasets(Base):
             "description": description
         }
 
-        previous_dataset = self.read_by_name(dataset_name)
-        if previous_dataset and previous_dataset['repositoryId'] == repo_id:
+        previous_dataset = self.read_by_name(dataset_name, repo_id)
+        if previous_dataset:
             if returnIdIfExists:
                 return previous_dataset
             else:
                 raise ValueError("Dataset already exists: {}".format(previous_dataset["id"]))
 
         dataset = requests.post(url, data=form, auth=HTTPBasicAuth(self.api_key, ""))
+        self._raise_for_status(dataset)
         return json.loads(dataset.content)
 
     def dataset(self, dataset_id):
@@ -369,11 +370,8 @@ class Repository(Base):
         return json.loads(r.content)
 
     def read_by_name(self, repo_name):
-        repos = self.read_all()
-        for element in repos:
-            if (element["name"] == repo_name):
-                return element
-        return False
+        matches = json.loads(self._get("/repositories", {"name": repo_name}).content)
+        return matches[0] if matches else False
 
     def delete(self, repository_id):
         url = f"{BASE_URL}/repositories/{repository_id}"
@@ -402,7 +400,9 @@ class Repository(Base):
             "slug": slug    
         }
 
-        return json.loads(requests.post(url, data=form, auth=HTTPBasicAuth(self.api_key, "")).content)
+        r = requests.post(url, data=form, auth=HTTPBasicAuth(self.api_key, ""))
+        self._raise_for_status(r)
+        return json.loads(r.content)
 
 class Alphacast():
     # Alphacast Class(api_key)

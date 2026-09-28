@@ -20,8 +20,8 @@ project = 'Alphacast Python SDK'
 copyright = '2024, Alphacast'
 author = 'Alphacast'
 
-version = '0.1.8.7'
-release = '0.1.8.7'
+version = '0.1.9'
+release = '0.1.9'
 
 exclude_patterns = ['_build']
 pygments_style = 'sphinx'

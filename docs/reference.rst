@@ -32,7 +32,7 @@ All the interaction with your repositories are handled with the "repository" cla
   alphacast.repository.read_all()
 
 
-To read the metadata of a single repository by id use read_by_id or read_by_name. You need to have owner, admin or write permissions to access the repo.
+To read the metadata of a single repository by id use read_by_id or read_by_name. read_by_name matches the exact name (case, accents and spaces included) among the repositories where you or your teams have been granted any permission. If several match, the one with the highest permission (then the lowest id) is returned; if none match it returns False.
 
 ::
 
@@ -40,7 +40,7 @@ To read the metadata of a single repository by id use read_by_id or read_by_name
   alphacast.repository.read_by_name(repo_name)
 
 
-To create a repository you need to define its name, slug (optional), privacy (optional) and description (also optional). The parameter returnIdIfExists (True/False) is usen to describe the action when de repository already exists. If true, then it returns de Id.
+To create a repository you need to define its name, slug (optional), privacy (optional) and description (also optional). The parameter returnIdIfExists (True/False) is used to describe the action when a repository with that name already exists (as found by read_by_name). If true, then it returns the existing repository; otherwise it raises a ValueError. If the API rejects the creation, an Exception with its message is raised.
 
 ::
 
@@ -52,7 +52,9 @@ Finding datasets
 
 Finding and downloading data is at the core of Alphacast and is done with the "datasets" class.
 
-To access the metadata of all your datasets (that is, those where you have owner, admin or write permission) use read_all() or read_by_name().
+To access the metadata of all your datasets (that is, those in repositories where you or your teams have been granted any permission) use read_all() or read_by_name().
+
+read_by_name(dataset_name, repo_id=None) matches the exact name (case, accents and spaces included), optionally within a repository, and returns None if there is no match. Without repo_id, if the name exists in several repositories the one with the highest permission (then the lowest id) is returned.
 
 ::
 
@@ -109,6 +111,8 @@ So first let's create a dataset
 ::
 
   alphacast.datasets.create(dataset_name, repo_id, description)
+
+Pass returnIdIfExists=True to get the existing dataset when one with that exact name already exists in repo_id (otherwise a ValueError is raised). Names are unique per repository regardless of case, so creating "gdp" where "GDP" exists raises an Exception with the API message.
 
 The process, if succesfull, will provide you with an id. you can check if your dataset has been created visiting alphacast.io/datasets/{dataset_id}
 
